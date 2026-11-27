@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>saikoistyping</title>
+
+<link rel="icon" type="image/png" href="https://saikoistyping.neocities.org/images/saiko3.png">
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-card: #ffffff;
+    --bg-secondary: #fafafa;
+    --text: #111111;
+    --text-muted: #666666;
+    --border: #e2e2e2;
+    --border-hover: #999999;
+    --accent: #000000;
+    --accent-contrast: #ffffff;
+    --badge-bg: rgba(0, 0, 0, 0.05);
+    --badge-text: #444444;
+    --ease-modern: cubic-bezier(0.25, 1, 0.5, 1);
+    --duration: 0.35s;
+    --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
+  }
+
+  [data-theme="dark"] {
+    --bg: #0f0f11;
+    --bg-card: #18181b;
+    --bg-secondary: #141417;
+    --text: #f4f4f5;
+    --text-muted: #a1a1aa;
+    --border: #27272a;
+    --border-hover: #52525b;
+    --accent: #ffffff;
+    --accent-contrast: #000000;
+    --badge-bg: rgba(255, 255, 255, 0.08);
+    --badge-text: #d4d4d8;
+    --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  }
+  
+  * { box-sizing: border-box; }
+
+  /* Background Canvas */
+  #bgCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.7;
+  }
+  
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    margin: 0;
+    padding: 24px;
+    line-height: 1.6;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+  
+  .container { 
+    max-width: 960px; 
+    margin: 0 auto; 
+  }
+  
+  /* Theme Toggle */
+  .top-bar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+  }
+  
+  .theme-toggle {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 14px;
+    border-radius: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+  .theme-toggle:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .theme-toggle svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+  }
+
+  /* Header */
+  header { 
+    text-align: center; 
+    margin-bottom: 40px; 
+    padding-top: 10px; 
+  }
+  
+  .avatar-wrapper {
+    display: inline-block;
+    position: relative;
+    margin-bottom: 18px;
+  }
+  
+  header img { 
+    width: 105px; 
+    height: 105px; 
+    border-radius: 50%; 
+    object-fit: cover;
+    border: 2px solid var(--border);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+    transition: transform 0.4s var(--ease-modern), border-color 0.3s ease;
+  }
+  
+  header img:hover {
+    transform: scale(1.1) rotate(4deg);
+    border-color: var(--accent);
+  }
+
+  h1 { 
+    margin: 0; 
+    font-size: 2.5rem; 
+    letter-spacing: -0.5px; 
+    font-weight: 800;
+    font-family: 'Space Grotesk', sans-serif;
+    text-transform: uppercase;
+  }
+  
+  .alias { 
+    color: var(--text-muted); 
+    margin: 8px 0 0 0; 
+    font-size: 1rem;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  .alias-alt {
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    margin-top: 4px;
+    opacity: 0.8;
+  }
+
+  h2.section-title { 
+    text-align: center; 
+    font-weight: 700; 
+    font-size: 1.1rem; 
+    margin: 40px 0 24px; 
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--text-muted);
+  }
+
+  /* Folder Navigation */
+  .folder-nav {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+  
+  .folder-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all var(--duration) var(--ease-modern);
+    position: relative;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    border-radius: 6px;
+  }
+  
+  .folder-btn svg { 
+    width: 18px; 
+    height: 18px; 
+    stroke: currentColor; 
+    fill: none; 
+    stroke-width: 2; 
+    stroke-linecap: round; 
+    stroke-linejoin: round; 
+  }
+  
+  .folder-btn:hover {
+    color: var(--text);
+    border-color: var(--border-hover);
+    background: rgba(0, 0, 0, 0.04);
+    transform: translateY(-2px);
+  }
+  
+  [data-theme="dark"] .folder-btn:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--border-hover);
+  }
+
+  .folder-btn:active {
+    transform: translateY(0);
+  }
+
+  .folder-btn.active {
+    color: var(--accent-contrast);
+    background: var(--accent);
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  [data-theme="dark"] .folder-btn.active {
+    color: var(--accent-contrast);
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 4px 14px rgba(255, 255, 255, 0.15);
+  }
+
+  /* Folder Content & Animation */
+  .folder-content {
+    display: none;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity var(--duration) var(--ease-modern), transform var(--duration) var(--ease-modern);
+  }
+  
+  .folder-content.active {
+    display: block;
+    animation: openFolder var(--duration) var(--ease-modern) forwards;
+  }
+  
+  @keyframes openFolder {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+    padding: 4px 0 30px;
+  }
+  
+  /* ----- UNIFIED CARD STYLE ----- */
+  .unified-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s var(--ease-modern);
+    position: relative;
+    border-radius: 8px;
+  }
+  
+  .unified-card:hover {
+    transform: translateY(-6px);
+    border-color: var(--border-hover);
+    box-shadow: var(--shadow);
+  }
+  
+  .unified-card .card-img {
+    width: 100%;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    filter: grayscale(80%) brightness(0.95);
+    transition: filter 0.4s ease, transform 0.4s ease;
+    margin-bottom: 16px;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+  
+  .unified-card:hover .card-img {
+    filter: grayscale(0%) brightness(1);
+  }
+  
+  .unified-card .card-title {
+    margin: 0 0 8px 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: -0.2px;
+    line-height: 1.3;
+  }
+  
+  .unified-card .card-desc {
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    line-height: 1.5;
+    margin: 0 0 20px 0;
+    font-family: 'Inter', sans-serif;
+    flex: 1;
+  }
+
+  .card-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: auto;
+  }
+
+  .card-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 14px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: none;
+    font-family: 'Inter', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  
+  .card-btn:hover {
+    background: var(--accent);
+    color: var(--accent-contrast);
+    border-color: var(--accent);
+    transform: translateX(2px);
+  }
+
+  .card-btn svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+  }
+
+  .share-btn {
+    padding: 8px 10px;
+    background: var(--bg-card);
+    color: var(--text-muted);
+    border-color: var(--border);
+  }
+  
+  .share-btn:hover {
+    color: var(--accent-contrast);
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  
+  /* Toast Notification */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    padding: 12px 20px;
+    border-radius: 30px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    transform: translateY(100px);
+    opacity: 0;
+    transition: transform 0.3s var(--ease-modern), opacity 0.3s ease;
+    z-index: 9999;
+    pointer-events: none;
+  }
+  .toast.show {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  
+  /* Badge + Date row */
+  .card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  
+  .card-badge {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+    color: var(--badge-text);
+    background: var(--badge-bg);
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  
+  .date-stamp {
+    font-size: 0.7rem;
+    font-family: 'Inter', monospace;
+    background: var(--badge-bg);
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.3px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  
+  /* Placeholder message */
+  .placeholder-card {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--text-muted);
+    padding: 48px 24px;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    font-size: 0.95rem;
+  }
+
+  /* ========== REDESIGNED CONTACT AREA ========== */
+  .contact-modern {
+    margin-top: 60px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--accent);
+    border-radius: 12px;
+    padding: 44px 28px 36px;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+  
+  .contact-modern h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.6rem;
+    margin: 0 0 12px;
+    letter-spacing: -0.5px;
+  }
+  
+  .contact-sub-wrapper {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+
+  .contact-sub {
+    color: var(--text-muted);
+    font-size: 0.88rem;
+  }
+
+  .contact-sub a {
+    color: var(--text);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--border-hover);
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .contact-sub a:hover {
+    color: var(--accent);
+    border-bottom-style: solid;
+  }
+
+  .contact-heading-small {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+
+  .contact-links-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+  
+  .contact-modern-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 40px;
+    padding: 10px 22px;
+    text-decoration: none;
+    color: var(--text);
+    font-weight: 500;
+    font-size: 0.88rem;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  }
+  
+  .contact-modern-item svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    transition: transform 0.2s;
+  }
+  
+  .contact-modern-item:hover {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-contrast);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  }
+  
+  .contact-modern-item:hover svg {
+    transform: scale(1.1);
+  }
+  
+  .copyright-modern {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+  
+  .disclaimer-compact {
+    font-size: 0.7rem;
+    max-width: 520px;
+    margin: 8px auto 0;
+    color: var(--text-muted);
+    opacity: 0.8;
+  }
+
+  @media (max-width: 600px) {
+    body { padding: 16px; }
+    h1 { font-size: 1.8rem; }
+    .projects-grid { grid-template-columns: 1fr; }
+    .folder-btn { padding: 8px 14px; font-size: 0.82rem; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+
+<!-- Toast notification element -->
+<div id="toast" class="toast">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toastMsg">Copied to clipboard!</span>
+</div>
+
+<div class="container">
+  <!-- Top Bar / Theme Controls -->
+  <div class="top-bar">
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+      <svg id="themeIcon" viewBox="0 0 24 24">
+        <!-- Sun icon default -->
+        <circle cx="12" cy="12" r="5"></circle>
+        <line x1="12" y1="1" x2="12" y2="3"></line>
+        <line x1="12" y1="21" x2="12" y2="23"></line>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+        <line x1="1" y1="12" x2="3" y2="12"></line>
+        <line x1="21" y1="12" x2="23" y2="12"></line>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+      </svg>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+
+  <header>
+    <div class="avatar-wrapper">
+      <img src="https://saikoistyping.neocities.org/images/saiko3.png" alt="Saiko Logo" onerror="this.src='https://placehold.co/105x105/111111/ffffff?text=SAIKO'">
+    </div>
+    <h1>SAIKOISTYPING</h1>
+    <p class="alias">playing, creating, translating and composing music for video games</p>
+  </header>
+
+  <h2 class="section-title">Projects & Contributions</h2>
+
+  <!-- Folder Navigation -->
+  <div class="folder-nav" role="tablist">
+    <button class="folder-btn active" data-target="recent" role="tab" aria-selected="true">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Recent
+    </button>
+    <button class="folder-btn" data-target="games" role="tab" aria-selected="false">
+      <svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4"/><path d="M8 10v4"/><circle cx="17" cy="12" r="1.5"/><circle cx="15" cy="14" r="1.5"/></svg>
+      Games
+    </button>
+    <button class="folder-btn" data-target="soundtracks" role="tab" aria-selected="false">
+      <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+      Music
+    </button>
+    <button class="folder-btn" data-target="translations" role="tab" aria-selected="false">
+      <svg viewBox="0 0 24 24"><path d="M5 8l6 6"></path><path d="M4 14l6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="M22 22l-5-10-5 10"></path><path d="M14 18h6"></path></svg>
+      Translations
+    </button>
+    <button class="folder-btn" data-target="other" role="tab" aria-selected="false">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+      Other
+    </button>
+  </div>
+
+  <!-- ==================== RECENT TAB ==================== -->
+  <div id="recent" class="folder-content active" role="tabpanel">
+    <div class="projects-grid">
+    
+      <div class="unified-card">
+        <img class="card-img" src="https://saikoistyping.neocities.org/images/juiced_16_9.png" alt="Unachieve tool" onerror="this.src='https://placehold.co/600x337/111/fff?text=Unachieve+Tool'">
+        <div class="card-meta">
+          <span class="card-badge">🎮 Indie Game</span>
+          <span class="date-stamp">Nov 2026</span>
+        </div>
+        <h3 class="card-title">JUICED!</h3>
+        <p class="card-desc">An experimental horror game set within the walls of an unknown laboratory, where a computerized voice module tells you what to do.</p>
+        <div class="card-actions">
+          <a href="https://imsaiko.itch.io/juiced" class="card-btn" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            PLAY NOW
+          </a>
+          <button class="card-btn share-btn" onclick="shareProject(this, 'https://imsaiko.itch.io/juiced')" title="Share project link">
+            <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          </button>
+        </div>
+      </div>   
+    
+    
+    
+      <div class="unified-card">
+        <img class="card-img" src="https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3568740/771b6b763be36fc7060f5392c595502f7b4c32ea/capsule_616x353.jpg?t=1773425751" alt="THE FATUM" onerror="this.src='https://placehold.co/600x337/111/fff?text=THE+FATUM'">
+        <div class="card-meta">
+          <span class="card-badge">🎵 Original Score</span>
+          <span class="date-stamp">DEMO | 2026</span>
+        </div>
+        <h3 class="card-title">THE FATUM</h3>
+        <p class="card-desc">A Test of your deduction in a world of total control. Interrogate, inspect, pass a verdict. Play Demo & Wishlist now!</p>
+        <div class="card-actions">
+          <a href="https://store.steampowered.com/app/3568740/THE_FATUM/" class="card-btn" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            PLAY DEMO ON STEAM
+          </a>
+          <button class="card-btn share-btn" onclick="shareProject(this, 'https://store.steampowered.com/app/3568740/THE_FATUM/')" title="Share project link">
+            <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          </button>
+        </div>
+      </div>
+     
+
+      <div class="unified-card">
+        <img class="card-img" src="https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4174510/c03e4abd9802606e8c7c86425030288d7eec40b3/page_bg_raw.jpg?t=1780390117" alt="Looking Up I See Only A Ceiling: The Relapse" onerror="this.src='https://placehold.co/600x337/111/fff?text=Looking+Up'">
+        <div class="card-meta">
+          <span class="card-badge">📖 Translation</span>
+          <span class="date-stamp">Jun 2026</span>
+        </div>
+        <h3 class="card-title">Looking Up I See Only A Ceiling: The Recall</h3>
+        <p class="card-desc">New spin-off short story from “Looking Up I See Only A Ceiling”, made in collaboration with another game “7 Days To Think About It”.</p>
+        <div class="card-actions">
+          <a href="https://store.steampowered.com/app/4174510/Looking_Up_I_See_Only_A_Ceiling_The_Recall/" class="card-btn" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            GET ON STEAM
+          </a>
+          <button class="card-btn share-btn" onclick="shareProject(this, 'https://store.steampowered.com/app/4174510/Looking_Up_I_See_Only_A_Ceiling_The_Recall/')" title="Share project link">
+            <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== GAMES TAB ==================== -->
+  <div id="games" class="folder-content" role="tabpanel">
+    <div class="projects-grid">
+    
+      <div class="unified-card">
+        <img class="card-img" src="https://saikoistyping.neocities.org/images/juiced_16_9.png" alt="JUICED!" onerror="this.src='https://placehold.co/600x337/111/fff?text=JUICED'">
+        <div class="card-meta">
+          <span class="card-badge">🎮 Indie Game</span>
+        </div>
+        <h3 class="card-title">JUICED!</h3>
+        <p class="card-desc">An experimental horror game set within the walls of an unknown laboratory, where a computerized voice module tells you what to do.</p>
+        <div class="card-actions">
+          <a href="https://imsaiko.itch.io/juiced" class="card-btn" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            PLAY NOW
+          </a>
+          <button class="card-btn share-btn" onclick="shareProject(this, 'https://imsaiko.itch.io/juiced')" title="Share project link">
+            <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          </button>
+        </div>
+      </div>
+    
+      <div class="unified-card">
+        <img class="card-img" src="https://saikoistyping.neocities.org/images/spacevideogame.png" alt="S.P.A.C.E" onerror="this.src='https://placehold.co/600x337/111/fff?text=S.P.A.C.E'">
+        <div class="card-meta">
+          <span class="card-badge">🎮 Indie Game</span>
+        </div>
+        <h3 class="card-title">S.P.A.C.E</h3>
+        <p class="card-desc">Space adventure featuring custom responsive gameplay and vibrant visuals.</p>
+        <div class="card-actions">
+          <a href="https://xteamstudio.itch.io/space" class="card-btn" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            PLAY NOW
+          </a>
+          <button class="card-btn share-btn" onclick="shareProject(this, 'https://xteamstudio.itch.io/space')" title="Share project link">
+            <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          </button>
+        </div>
+      </div>
+    
+      <div class="unified-card">
+        <img class="card-img" src="https://saikoistyping.neocities.org/images/project1.jpg" alt="The Fever Dream" onerror="this.src='https://placehold.co/600x337/111/fff?text=The+Fever+Dream'">
+        <div class="card-meta">
+          <span class="card-badge">🎮 Indie Game</span>
+        </div>
+        <h3 class="card-title">The Fever Dream</h3>
+        <p class="card-desc">Psychedelic narrative experience with original music score and immersive atmosphere.</p>
+        <div class="card-actions">
+          <a href="https://imsaiko.itch.io/the-fever-dream" class="card-btn" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            PLAY NOW
+          </a>
+          <button class="card-btn share-btn" onclick="shareProject(this, 'https://imsaiko.itch.io/the-fever-dream')" title="Share project link">
+            <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          </button>
+        </div>
+      </div>
+
+
+    </div>
+  </div>
+
+  <!-- ==================== SOUNDTRACKS TAB ==================== -->
+  <div id="soundtracks" class="folder-content" role="tabpanel">
+    <div class="projects-grid">
+      <div class="unified-card">
+        <img class="card-img" src="https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3568740/771b6b763be36fc7060f5392c595502f7b4c32ea/capsule_616x353.jpg?t=1773425751" alt="THE FATUM" onerror="this.src='https://placehold.co/600x337/111/fff?text=THE+FATUM'">
+        <div class="card-meta"><span class="card-badge">🎵 Original Score</span></div>
+        <h3 class="card-title">THE FATUM</h3>
+        <p class="card-desc">A test of your deduction in a world of total control. Dark orchestral & electronic score. Play Demo & Wishlist now!</p>
+        <div class="card-actions">
+          <a href="https://store.steampowered.com/app/3568740/THE_FATUM/" class="card-btn" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            PLAY DEMO ON STEAM
+          </a>
+          <button class="card-btn share-btn" onclick="shareProject(this, 'https://store.steampowered.com/app/3568740/THE_FATUM/')" title="Share project link">
+            <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="unified-card">
+        <img class="card-img" src="https://saikoistyping.neocities.org/images/project4.jpg" alt="The Fever Dream OST" onerror="this.src='https://placehold.co/600x337/111/fff?text=Fever+Dream+OST'">
+        <div class="card-meta"><span class="card-badge">🎵 Original Score</span></div>
+        <h3 class="card-title">The Fever Dream</h3>
+        <p class="card-desc">Immerse in the dark dream atmosphere. Includes 17 full original music tracks.</p>
+        <div class="card-actions">
+          <a href="https://youtu.be/RSum25bJoBM?si=42ZuR_y6SH4TOl31" class="card-btn" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            LISTEN
+          </a>
+          <button class="card-btn share-btn" onclick="shareProject(this, 'https://youtu.be/RSum25bJoBM?si=42ZuR_y6SH4TOl31')" title="Share project link">
+            <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          </button>
+        </div>
+      </div>
+      
+      <div class="unified-card">
+        <img class="card-img" src="https://saikoistyping.neocities.org/images/Hospitalis169.png" alt="HOSPITALIS Album" onerror="this.src='https://placehold.co/600x337/111/fff?text=HOSPITALIS'">
+        <div class="card-meta"><span class="card-badge">🎵 Music Album</span></div>
+        <h3 class="card-title">HOSPITALIS</h3>
+        <p class="card-desc">A personal collection of classic tracks and audio experiments brought together in one place.</p>
+        <div class="card-actions">
+          <a href="https://youtu.be/TM3tMzJQdTE?si=FgZdynVQewIBwhkY" class="card-btn" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            YOUTUBE
+          </a>
+          <a href="https://open.spotify.com/album/2W2DQ8omcMX1wxUghWNBIv?si=114b245a0ab24ce3" class="card-btn" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            SPOTIFY
+          </a>
+          <button class="card-btn share-btn" onclick="shareProject(this, 'https://open.spotify.com/album/2W2DQ8omcMX1wxUghWNBIv?si=114b245a0ab24ce3')" title="Share project link">
+            <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          </button>
+        </div>
+      </div>
+      
+      <div class="unified-card">
+        <img class="card-img" src="https://saikoistyping.neocities.org/images/spacevideogamesoundtrack.png" alt="S.P.A.C.E OST" onerror="this.src='https://placehold.co/600x337/111/fff?text=S.P.A.C.E+OST'">
+        <div class="card-meta"><span class="card-badge">🎵 Original Score</span></div>
+        <h3 class="card-title">S.P.A.C.E</h3>
+        <p class="card-desc">A pack of three dreamy music tracks composed specifically for the game atmosphere.</p>
+        <div class="card-actions">
+          <a href="https://youtu.be/_JIvl7Iskcg?si=5CW-jpXFAPfROJgs" class="card-btn" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            LISTEN
+          </a>
+          <button class="card-btn share-btn" onclick="shareProject(this, 'https://youtu.be/_JIvl7Iskcg?si=5CW-jpXFAPfROJgs')" title="Share project link">
+            <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="unified-card">
+        <img class="card-img" src="https://saikoistyping.neocities.org/images/project2.jpg" alt="Computer Entertainment" onerror="this.src='https://placehold.co/600x337/111/fff?text=Music+Kit'">
+        <div class="card-meta"><span class="card-badge">🎵 Music Kit / CS2</span></div>
+        <h3 class="card-title">Computer Entertainment</h3>
+        <p class="card-desc">Relive 90s gaming nostalgia with this kit, designed to make your next match unforgettable.</p>
+        <div class="card-actions">
+          <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3448579840" class="card-btn" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            VOTE & LISTEN
+          </a>
+          <button class="card-btn share-btn" onclick="shareProject(this, 'https://steamcommunity.com/sharedfiles/filedetails/?id=3448579840')" title="Share project link">
+            <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TRANSLATIONS TAB ==================== -->
+  <div id="translations" class="folder-content" role="tabpanel">
+    <div class="projects-grid">
+    
+      <div class="unified-card">
+        <img class="card-img" src="https://saikoistyping.neocities.org/images/project5.jpg" alt="Mystery Chamber Classic" onerror="this.src='https://placehold.co/600x337/111/fff?text=Mystery+Chamber'">
+        <div class="card-meta"><span class="card-badge">📖 English Translation</span></div>
+        <h3 class="card-title">Mystery Chamber Classic</h3>
+        <p class="card-desc">Platformer with turn-based battles, originally released back in 2015 by GKProduction.</p>
+        <div class="card-actions">
+          <a href="https://gkproduction.github.io/games/mystery_chamber_classic/game.html" class="card-btn" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            PLAY NOW
+          </a>
+          <button class="card-btn share-btn" onclick="shareProject(this, 'https://gkproduction.github.io/games/mystery_chamber_classic/game.html')" title="Share project link">
+            <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="unified-card">
+        <img class="card-img" src="https://i.ytimg.com/vi/YDwrnMyALkM/maxresdefault.jpg" alt="Froggy vs. Carolina" onerror="this.src='https://placehold.co/600x337/111/fff?text=Froggy+vs+Carolina'">
+        <div class="card-meta"><span class="card-badge">📖 English Translation</span></div>
+        <h3 class="card-title">Froggy vs. Carolina</h3>
+        <p class="card-desc">Fast-paced reflex platformer by GKProduction. Jump, dodge and survive.</p>
+        <div class="card-actions">
+          <a href="https://gkproduction.github.io/games/froggy_vs_carolina/game.html" class="card-btn" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            PLAY NOW
+          </a>
+          <button class="card-btn share-btn" onclick="shareProject(this, 'https://gkproduction.github.io/games/froggy_vs_carolina/game.html')" title="Share project link">
+            <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          </button>
+        </div>
+      </div>
+    
+      <div class="unified-card">
+        <img class="card-img" src="https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4174510/c03e4abd9802606e8c7c86425030288d7eec40b3/page_bg_raw.jpg?t=1780390117" alt="Looking Up DLC" onerror="this.src='https://placehold.co/600x337/111/fff?text=The+Recall'">
+        <div class="card-meta"><span class="card-badge">📖 Russian Translation</span></div>
+        <h3 class="card-title">Looking Up I See Only A Ceiling: The Recall</h3>
+        <p class="card-desc">Spin-off short story from “Looking Up I See Only A Ceiling”, created in collaboration with “7 Days To Think About It”.</p>
+        <div class="card-actions">
+          <a href="https://store.steampowered.com/app/4174510/Looking_Up_I_See_Only_A_Ceiling_The_Recall/" class="card-btn" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            GET ON STEAM
+          </a>
+          <button class="card-btn share-btn" onclick="shareProject(this, 'https://store.steampowered.com/app/4174510/Looking_Up_I_See_Only_A_Ceiling_The_Recall/')" title="Share project link">
+            <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="unified-card">
+        <img class="card-img" src="https://saikoistyping.neocities.org/images/project3.jpg" alt="Looking Up I See Only A Ceiling" onerror="this.src='https://placehold.co/600x337/111/fff?text=Looking+Up'">
+        <div class="card-meta"><span class="card-badge">📖 Russian Translation</span></div>
+        <h3 class="card-title">Looking Up I See Only A Ceiling</h3>
+        <p class="card-desc">Short psychological adventure about a stressed girl. Featured at Tokyo Indies, GodotCon and more.</p>
+        <div class="card-actions">
+          <a href="https://store.steampowered.com/app/1742930/Looking_Up_I_See_Only_A_Ceiling/" class="card-btn" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            GET ON STEAM
+          </a>
+          <button class="card-btn share-btn" onclick="shareProject(this, 'https://store.steampowered.com/app/1742930/Looking_Up_I_See_Only_A_Ceiling/')" title="Share project link">
+            <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="unified-card">
+        <img class="card-img" src="https://saikoistyping.neocities.org/images/project6.jpg" alt="The Relapse" onerror="this.src='https://placehold.co/600x337/111/fff?text=The+Relapse'">
+        <div class="card-meta"><span class="card-badge">📖 Russian Translation</span></div>
+        <h3 class="card-title">Looking Up I See Only A Ceiling: The Relapse</h3>
+        <p class="card-desc">Critically acclaimed expansion chapter for the original title.</p>
+        <div class="card-actions">
+          <a href="https://store.steampowered.com/app/2704190/Looking_Up_I_See_Only_A_Ceiling_The_Relapse/" class="card-btn" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            GET ON STEAM
+          </a>
+          <button class="card-btn share-btn" onclick="shareProject(this, 'https://store.steampowered.com/app/2704190/Looking_Up_I_See_Only_A_Ceiling_The_Relapse/')" title="Share project link">
+            <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== OTHER TAB ==================== -->
+  <div id="other" class="folder-content" role="tabpanel">
+    <div class="projects-grid">
+      <div class="unified-card">
+        <img class="card-img" src="https://saikoistyping.neocities.org/images/unachievetool.png" alt="UNACHIEVE TOOL" onerror="this.src='https://placehold.co/600x337/111/fff?text=Unachieve+Tool'">
+        <div class="card-meta">
+          <span class="card-badge">🛠️ Development Tool</span>
+        </div>
+        <h3 class="card-title">Game Jolt Unachieve Tool</h3>
+        <p class="card-desc">A fast, compact utility tool to easily add or remove Game Jolt trophies for game testing.</p>
+        <div class="card-actions">
+          <a href="https://saikoistyping.neocities.org/unachieve_tool" class="card-btn" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            LEARN MORE
+          </a>
+          <button class="card-btn share-btn" onclick="shareProject(this, 'https://saikoistyping.neocities.org/unachieve_tool')" title="Share project link">
+            <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          </button>
+        </div>
+      </div>
+      
+      <div class="placeholder-card">
+        🎧 More experiments, devlogs, and mini tools are coming soon!
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== REDESIGNED CONTACT AREA ========== -->
+  <footer class="contact-modern">
+    <h3>CONTACT & STAY UPDATED</h3>
+    
+    <div class="contact-sub-wrapper">
+      <span class="contact-sub">
+        <a href="https://x.com/saikoistyping" target="_blank" rel="noopener noreferrer">X / Twitter</a> (x.com/saikoistyping)
+      </span>
+      <span class="contact-sub">
+        <a href="https://t.me/saikoistyping" target="_blank" rel="noopener noreferrer">Telegram Channel (RU)</a> (t.me/saikoistyping)
+      </span>
+    </div>
+
+    <div class="contact-heading-small">Get in touch directly</div>
+    
+    <div class="contact-links-grid">
+      <button onclick="copyEmail()" class="contact-modern-item" style="cursor: pointer; border: 1px solid var(--border); font-family: inherit;">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        saikoistyping@gmail.com
+      </button>
+    </div>
+
+    <div class="copyright-modern">
+      <p>© <span id="year"></span> Lev Saiko (saikoistyping)</p>
+      <div class="disclaimer-compact">All trademarks and project assets belong to their respective owners. Portfolio showcase only.</div>
+    </div>
+  </footer>
+</div>
+
+<script>
+  // Global Toast and Copy utilities (accessible via inline onclick attributes)
+  let toastTimeout;
+  window.showToast = function(message) {
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toastMsg');
+    if (!toast || !toastMsg) return;
+
+    toastMsg.textContent = message || 'Copied to clipboard!';
+    toast.classList.add('show');
+
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => {
+      toast.classList.remove('show');
+    }, 2800);
+  };
+
+  window.shareProject = function(btnElement, url) {
+    const card = btnElement.closest('.unified-card');
+    const titleElement = card ? card.querySelector('.card-title') : null;
+    const projectName = titleElement ? titleElement.textContent.trim() : 'Project';
+    const message = `${projectName} Link Copied!`;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(() => {
+        window.showToast(message);
+      }).catch(() => {
+        fallbackCopyTextToClipboard(url, message);
+      });
+    } else {
+      fallbackCopyTextToClipboard(url, message);
+    }
+  };
+
+  window.copyEmail = function() {
+    const email = 'saikoistyping@gmail.com';
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(email).then(() => {
+        window.showToast('Email Address Copied!');
+      }).catch(() => {
+        fallbackCopyTextToClipboard(email, 'Email address copied!');
+      });
+    } else {
+      fallbackCopyTextToClipboard(email, 'Email address copied!');
+    }
+  };
+
+  function fallbackCopyTextToClipboard(text, customMessage) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.top = '0';
+    textArea.style.left = '0';
+    textArea.style.opacity = '0';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      window.showToast(customMessage || 'Copied to clipboard!');
+    } catch (err) {
+      window.showToast('Could not copy link');
+    }
+    document.body.removeChild(textArea);
+  }
+
+  // Auto-update copyright year
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // Dark/Light Theme Switching with localStorage persistence
+  (function initTheme() {
+    const toggleBtn = document.getElementById('themeToggle');
+    const themeLabel = document.getElementById('themeLabel');
+    const themeIcon = document.getElementById('themeIcon');
+    if (!toggleBtn) return;
+
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    let currentTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+    applyTheme(currentTheme);
+
+    toggleBtn.addEventListener('click', () => {
+      currentTheme = (currentTheme === 'dark') ? 'light' : 'dark';
+      applyTheme(currentTheme);
+      localStorage.setItem('theme', currentTheme);
+    });
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      if (themeLabel) {
+        themeLabel.textContent = theme === 'dark' ? 'Light' : 'Dark';
+      }
+      if (themeIcon) {
+        if (theme === 'dark') {
+          // Moon icon
+          themeIcon.innerHTML = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>`;
+        } else {
+          // Sun icon
+          themeIcon.innerHTML = `
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          `;
+        }
+      }
+    }
+  })();
+
+  // Action-driven Interactive Kinetic Background Canvas
+  (function initActionCanvas() {
+    const canvas = document.getElementById('bgCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
+
+    let mouse = { x: -1000, y: -1000, vx: 0, vy: 0, lastX: -1000, lastY: -1000 };
+    let shockwaves = [];
+
+    window.addEventListener('resize', () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      mouse.vx = e.clientX - mouse.lastX;
+      mouse.vy = e.clientY - mouse.lastY;
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+      mouse.lastX = e.clientX;
+      mouse.lastY = e.clientY;
+    });
+
+    window.addEventListener('click', (e) => {
+      shockwaves.push({
+        x: e.clientX,
+        y: e.clientY,
+        radius: 5,
+        maxRadius: Math.max(width, height) * 0.35,
+        alpha: 0.8,
+        speed: 12
+      });
+    });
+
+    const numParticles = 65;
+    const particles = Array.from({ length: numParticles }, () => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: (Math.random() - 0.5) * 1.2,
+      vy: (Math.random() - 0.5) * 1.2,
+      baseRadius: Math.random() * 2.5 + 1,
+      radius: Math.random() * 2.5 + 1,
+      alpha: Math.random() * 0.4 + 0.3
+    }));
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const colorRGB = isDark ? '255, 255, 255' : '17, 17, 17';
+
+      // Update & Draw Click Shockwaves
+      shockwaves.forEach((sw, index) => {
+        sw.radius += sw.speed;
+        sw.alpha *= 0.94;
+
+        ctx.beginPath();
+        ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(${colorRGB}, ${sw.alpha * 0.4})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        if (sw.alpha < 0.02 || sw.radius > sw.maxRadius) {
+          shockwaves.splice(index, 1);
+        }
+      });
+
+      // Update & Render Particle Grid
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+
+        // Velocity & movement update
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // Screen edge bounce
+        if (p.x < 0 || p.x > width) p.vx *= -1;
+        if (p.y < 0 || p.y > height) p.vy *= -1;
+
+        // Mouse proximity reaction (repulsion & kinetic acceleration)
+        const dx = p.x - mouse.x;
+        const dy = p.y - mouse.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const maxDist = 180;
+
+        if (dist < maxDist) {
+          const force = (1 - dist / maxDist) * 2;
+          p.x += (dx / dist) * force * 3;
+          p.y += (dy / dist) * force * 3;
+          p.radius = p.baseRadius + force * 2.5;
+        } else {
+          p.radius += (p.baseRadius - p.radius) * 0.1;
+        }
+
+        // Apply Shockwave impulse forces to particles
+        shockwaves.forEach(sw => {
+          const swDx = p.x - sw.x;
+          const swDy = p.y - sw.y;
+          const swDist = Math.sqrt(swDx * swDx + swDy * swDy);
+          if (Math.abs(swDist - sw.radius) < 30) {
+            p.x += (swDx / (swDist || 1)) * 4;
+            p.y += (swDy / (swDist || 1)) * 4;
+          }
+        });
+
+        // Draw individual particle
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${colorRGB}, ${p.alpha})`;
+        ctx.fill();
+
+        // Connect nearby particles with dynamic energy lines
+        for (let j = i + 1; j < particles.length; j++) {
+          const p2 = particles[j];
+          const ldx = p.x - p2.x;
+          const ldy = p.y - p2.y;
+          const ldist = Math.sqrt(ldx * ldx + ldy * ldy);
+          const maxConnectDist = 120;
+
+          if (ldist < maxConnectDist) {
+            const lineAlpha = (1 - ldist / maxConnectDist) * 0.18;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = `rgba(${colorRGB}, ${lineAlpha})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  })();
+
+  // Folder navigation logic
+  (function() {
+    const buttons = document.querySelectorAll('.folder-btn');
+    const contents = document.querySelectorAll('.folder-content');
+    
+    function switchTab(targetId) {
+      contents.forEach(content => {
+        content.classList.remove('active');
+        content.style.display = 'none';
+      });
+      
+      buttons.forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-selected', 'false');
+      });
+      
+      const targetContent = document.getElementById(targetId);
+      if (targetContent) {
+        targetContent.style.display = 'block';
+        void targetContent.offsetWidth; // Force reflow
+        targetContent.classList.add('active');
+      }
+      
+      const activeButton = Array.from(buttons).find(btn => btn.dataset.target === targetId);
+      if (activeButton) {
+        activeButton.classList.add('active');
+        activeButton.setAttribute('aria-selected', 'true');
+      }
+    }
+    
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.dataset.target;
+        if (targetId) switchTab(targetId);
+      });
+    });
+    
+    switchTab('recent');
+  })();
+</script>
+</body>
+</html>
